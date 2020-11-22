@@ -13,10 +13,10 @@
 
 ros::Publisher pub;
 
-pcl::PointCloud<pcl::PointXYZI> point_roi(const pcl::PointCloud<pcl::PointXYZI>::Ptr point)
+pcl::PointCloud<pcl::PointXYZI>::Ptr point_roi(const pcl::PointCloud<pcl::PointXYZI>::Ptr point)
 {
 
-    pcl::PointCloud<pcl::PointXYZI> out_cloud;
+    pcl::PointCloud<pcl::PointXYZI>::Ptr out_cloud(new pcl::PointCloud<pcl::PointXYZI>);
 
 
     // pcl_conversions::toPCL(msgs, cloud);
@@ -36,7 +36,7 @@ pcl::PointCloud<pcl::PointXYZI> point_roi(const pcl::PointCloud<pcl::PointXYZI>:
     pass.setInputCloud(point);   
     pass.setFilterFieldName("x");
     pass.setFilterLimits(-5,500);
-    pass.filter(out_cloud);
+    pass.filter(*out_cloud);
 
     return out_cloud;
 
@@ -44,28 +44,29 @@ pcl::PointCloud<pcl::PointXYZI> point_roi(const pcl::PointCloud<pcl::PointXYZI>:
 
 void Callback(const sensor_msgs::PointCloud2 msgs)
 {
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud(new  pcl::PointCloud<pcl::PointXYZI>);
+    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZI>);
     pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered(new  pcl::PointCloud<pcl::PointXYZI>);
     // pcl::PointCloud<pcl::PointXYZI>::Ptr output_cloud(new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::PointCloud<pcl::PointXYZI> output_cloud;
+    pcl::PointCloud<pcl::PointXYZI>::Ptr output_cloud(new pcl::PointCloud<pcl::PointXYZI>);
 
 
     pcl::fromROSMsg(msgs, *cloud);
+    output_cloud = point_roi(cloud);
 
     std::cout<<"Input: "<<cloud->points.size()<<" ( "<<pcl::getFieldsList(*cloud)<<")"<<std::endl;
 
     pcl::VoxelGrid<pcl::PointXYZI> sor;
-    sor.setInputCloud(cloud);
+    sor.setInputCloud(output_cloud);
     sor.setLeafSize(0.3f,0.3f,0.3f);
     sor.filter(*cloud_filtered);
 
-    output_cloud = point_roi(cloud_filtered);
+
 
     std::cout << "Output : " << cloud_filtered->points.size () << " (" << pcl::getFieldsList (*cloud_filtered) <<")"<< std::endl;
 
     sensor_msgs::PointCloud2 output;
 
-    pcl::toROSMsg(output_cloud, output);
+    pcl::toROSMsg(*cloud_filtered, output);
     pub.publish(output);
     
 
