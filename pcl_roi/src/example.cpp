@@ -3,7 +3,7 @@
 
 #include <pcl/conversions.h>
 #include <pcl/point_cloud.h>
-#include <pcl-1.8/pcl/point_types.h>
+#include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/filters/passthrough.h>
 
